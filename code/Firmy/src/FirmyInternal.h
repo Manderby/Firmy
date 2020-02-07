@@ -7,7 +7,6 @@
 
 #include FIRMY_NALIB_PATH(NAStack.h)
 
-
 // Unit
 FIPeriod* fiGetCurrentPeriod(void);
 NADateTime fiGetCurrentValueDate(void);
@@ -30,7 +29,7 @@ const NAString* fiGetFungibleIdentifier(const FIFungible* fungible);
 // Account
 // Registers a new account for the current period.
 FIAccount* fiRegisterAccountWithType(const FIFungible* fungible, const NAUTF8Char* identifier, const NAUTF8Char* name, FIAccount* parentaccount, FIAccountType accounttype);
-FIAccount* fiNewAccount(FIAccountType accounttype, const FIFungible* fungible, const NAString* newidentifier, const NAString* newname, FIAccount* newparent, NAInt newchildcount);
+FIAccount* fiNewAccount(FIAccountType accounttype, const FIFungible* fungible, const NAString* newidentifier, const NAString* newname, FIAccount* newparent);
 void fiCarryAccountOver(FIAccount* account, FIAmount amountDebit, FIAmount amountCredit);
 void fiAddAccountChild(FIAccount* account, FIAccount* child);
 const NAString* fiGetAccountIdentifier(const FIAccount* account);

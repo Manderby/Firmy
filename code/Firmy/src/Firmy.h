@@ -39,6 +39,7 @@ typedef enum{
 
 
 
+
 // Starts and stops a business unit (Company, Enterprise, Household)
 void fiStart(const NAUTF8Char* name);
 void fiStop(void);

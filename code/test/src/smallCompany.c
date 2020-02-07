@@ -87,12 +87,16 @@ FIPeriod* createYear1(FIPeriod* prevperiod){
   // Tatsaechliche Auszahlung aufs Bankkonto
   fiBook(1010.55, bankkonto1020, debitorenkunden1100, "Einnahmen MacAppStore");
 
-  // Transitorische Passivem
+  // Transitorische Passiven
+  fiDocument(naMakeDateTime(2020, 12, 31, 0, 0, 0), "Email vom 2021-01-13 Abgrenzung.txt");
   fiBook(3406.50, aufwandlohn5400, transpass2300, "Abgrenzung SVA Rechnung 2020");
 
   // Jahresergebnis
   fiDocument(naMakeDateTime(2020, 12, 31, 0, 0, 0), "docs/2021/Jan/Jahresabschluss.doc");
-  fiBook(7250.17, gewinnvortrag2990, hauptbuch, "Umbuchung Jahresergebins 2020");
+  fiBook(7250.17, gewinnvortrag2990, hauptbuch, "Umbuchung Jahresergebnis 2020");
+
+  fiDocument(naMakeDateTime(2020, 4, 3, 0, 0, 0), "docs/2020/Mar/AppStoreAbrechnung.pdf");
+  fiBook(11.42, debitorenkunden1100, hauptbuch, "XXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
   return y2020;
 }

@@ -113,7 +113,7 @@ FIAccount* fiAddPeriodMainAccount(const NAString* identifier, const NAString* na
   }
 
   FIAccount** newaccount = naPushStack(&(fiGetCurrentPeriod()->accounts));
-  *newaccount = fiNewAccount(type, fiGetPeriodMainFungible(), identifier, name, parent, 0);
+  *newaccount = fiNewAccount(type, fiGetPeriodMainFungible(), identifier, name, parent);
   #ifndef NDEBUG
   if(!*newaccount)
     naError("new account returned null");
@@ -216,13 +216,13 @@ FIAccount* fiRegisterAccountWithType(
   namestr = naNewStringWithFormat(name);
   
   if(naEqualStringToUTF8CString(idstr, FIRMY_MAIN_BOOK_IDENTIFIER, NA_TRUE)){
-    *newaccount = fiNewAccount(FIRMY_ACCOUNT_TYPE_MAIN_BOOK, fungible, idstr, namestr, NULL, 0);
+    *newaccount = fiNewAccount(FIRMY_ACCOUNT_TYPE_MAIN_BOOK, fungible, idstr, namestr, NULL);
   }else{
     FIAccountType desiredtype = accounttype;
     if(accounttype == FIRMY_ACCOUNT_TYPE_MAIN_BOOK){
       desiredtype = fiGetAccountType(parentaccount);
     }
-    *newaccount = fiNewAccount(desiredtype, fungible, idstr, namestr, parentaccount, 0);
+    *newaccount = fiNewAccount(desiredtype, fungible, idstr, namestr, parentaccount);
   }
   
   #ifndef NDEBUG

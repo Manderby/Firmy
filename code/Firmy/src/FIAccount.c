@@ -2,9 +2,8 @@
 #include "Firmy.h"
 #include "FirmyInternal.h"
 #include FIRMY_NALIB_PATH(NAStack.h)
+#include FIRMY_NALIB_PATH(NAHeap.h)
 
-
-typedef struct AccountEntry AccountEntry;
 
 struct FIAccount{
   FIAccountType type;
@@ -12,18 +11,11 @@ struct FIAccount{
   NAString* identifier;
   NAString* name;
   FIAccount* parent;
-  AccountEntry* childs;
-  NAInt childcount;
-  NAInt curchildcount;
+  NAStack childs;
   FIAmount totaldebitsum;
   FIAmount totalcreditsum;
   FIAmount localdebitsum;
   FIAmount localcreditsum;
-};
-
-
-struct AccountEntry{
-  FIAccount* account;
 };
 
 
@@ -37,8 +29,7 @@ FIAccount* fiNewAccount(
   const FIFungible* fungible,
   const NAString* newidentifier,
   const NAString* newname,
-  FIAccount* newparent,
-  NAInt newchildcount)
+  FIAccount* newparent)
 {
   FIAccount* account = naNew(FIAccount);
   account->type = accounttype;
@@ -46,17 +37,11 @@ FIAccount* fiNewAccount(
   account->identifier = naNewStringExtraction(newidentifier, 0, -1);
   account->name = naNewStringExtraction(newname, 0, -1);
   account->parent = newparent;
-  account->childcount = newchildcount;
+  naInitStack(&(account->childs), naSizeof(FIAccount*), 2);
   account->totaldebitsum  = 0;
   account->totalcreditsum = 0;
   account->localdebitsum  = 0;
   account->localcreditsum = 0;
-  if(account->childcount){
-    account->childs = naMalloc(naSizeof(AccountEntry) * (account->childcount));
-  }else{
-    account->childs = NULL;
-  }
-  account->curchildcount = 0;
   if(account->parent){
     fiAddAccountChild(account->parent, account);
   }
@@ -67,27 +52,14 @@ FIAccount* fiNewAccount(
 void fiDestructAccount(FIAccount* account){
   naDelete(account->identifier);
   naDelete(account->name);
+  naClearStack(&(account->childs));
 }
 
 
 
 void fiAddAccountChild(FIAccount* account, FIAccount* child){
-  if(account->curchildcount != account->childcount){
-    // This occurs during loading.
-    account->childs[account->curchildcount].account = child;
-    account->curchildcount++;
-  }else{
-    AccountEntry* newchilds = naMalloc(naSizeof(AccountEntry) * (account->childcount + 1));
-    for(NAInt c=0; c<account->childcount; c++){
-      newchilds[c] = account->childs[c];
-    }
-    newchilds[account->childcount].account = child;
-    account->childcount++;
-    account->curchildcount++;
-    AccountEntry* oldchilds = account->childs;
-    account->childs = newchilds;
-    naFree(oldchilds);
-  }
+  FIAccount** newEntry = naPushStack(&(account->childs));
+  *newEntry = child;
 }
 
 
@@ -185,11 +157,15 @@ NA_HDEF NAString* naNewStringWithAmount(FIAmount amount){
 
 
 void fiPrintAccount(const FIAccount* account, NABool recursive){
+  NAStackIterator iter;
 
   if(recursive){
-    for(NAInt c=0; c<account->childcount; c++){
-      fiPrintAccount(account->childs[c].account, recursive);
+    iter = naMakeStackAccessor(&(account->childs));
+    while(naIterateStack(&iter)){
+      const FIAccount* childAccount = naGetStackCurpConst(&iter);
+      fiPrintAccount(childAccount, recursive);
     }
+    naClearStackIterator(&iter);
   }
 
   printf("\n\n");
@@ -213,13 +189,15 @@ void fiPrintAccount(const FIAccount* account, NABool recursive){
   FIAmount computeddebitsum = account->localdebitsum;
   FIAmount computedcreditsum = account->localcreditsum;
   
-  for(NAInt c=0; c<account->childcount; c++){
+  iter = naMakeStackAccessor(&(account->childs));
+  while(naIterateStack(&iter)){
+    const FIAccount* childAccount = naGetStackCurpConst(&iter);
       
     FIAmount curdebitsum;
     FIAmount curcreditsum;
     
-    curdebitsum = fiGetAccountTotalDebitSum(account->childs[c].account);
-    curcreditsum = fiGetAccountTotalCreditSum(account->childs[c].account);
+    curdebitsum = fiGetAccountTotalDebitSum(childAccount);
+    curcreditsum = fiGetAccountTotalCreditSum(childAccount);
     
     if(curdebitsum > curcreditsum){
       curdebitsum -= curcreditsum;
@@ -238,7 +216,7 @@ void fiPrintAccount(const FIAccount* account, NABool recursive){
     creditstr = naNewStringWithAmount(curcreditsum);
     
     if((curdebitsum == 0.) && (curcreditsum == 0.)){
-      if((fiGetAccountType(account->childs[c].account) == FIRMY_ACCOUNT_TYPE_ASSET) || (fiGetAccountType(account->childs[c].account) == FIRMY_ACCOUNT_TYPE_EXPENSE)){
+      if((fiGetAccountType(childAccount) == FIRMY_ACCOUNT_TYPE_ASSET) || (fiGetAccountType(childAccount) == FIRMY_ACCOUNT_TYPE_EXPENSE)){
         naDelete(creditstr);
         creditstr = naNewString();
       }else{
@@ -258,13 +236,14 @@ void fiPrintAccount(const FIAccount* account, NABool recursive){
     
     printf("%s\t%s\t%s\t%s\n",
       "Unter-Konto",
-      naGetStringUTF8Pointer(fiGetAccountName(account->childs[c].account)),
+      naGetStringUTF8Pointer(fiGetAccountName(childAccount)),
       naGetStringUTF8Pointer(debitstr),
       naGetStringUTF8Pointer(creditstr));
     
     naDelete(debitstr);
     naDelete(creditstr);
   }
+  naClearStackIterator(&iter);
 
   NAStackIterator bookiter = naMakeStackAccessor(fiGetPeriodBookings());
   while(naIterateStack(&bookiter)){
