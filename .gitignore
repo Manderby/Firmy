@@ -1,0 +1,9 @@
+.DS_Store
+.vs
+*xcshareddata*
+*xcuserdata*
+*vcxproj.filters
+*vcxproj.user
+CONERR*
+build/
+bin/
