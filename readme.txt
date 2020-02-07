@@ -1,7 +1,7 @@
 The software package "Firmy" is a small accounting implementation, providing
 a basic interface for "double book-keeping".
 
-It is published under public domain and hence is completely free.
+It is published with the unilicense and hence is public domain.
 
 Currently, the master contains a beta version.
 Future release versions will be available as tags.
@@ -51,6 +51,6 @@ Firmy originally was created in 2011 by Tobias Stamm at the time he
 founded his company Manderim GmbH. It served to do all financial
 calculations concerning the company for the following 8 years.
 
-Within the those years, the code was enhanced and rewritten several times
+Within those years, the code was enhanced and rewritten several times
 and was translated from C++ to C. In 2019, the company did close down and
 the code had been rewritten for a public domain release.
