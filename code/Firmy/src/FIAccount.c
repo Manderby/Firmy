@@ -19,6 +19,7 @@ struct FIAccount{
 };
 
 
+
 void fiDestructAccount(FIAccount* account);
 NA_RUNTIME_TYPE(FIAccount, fiDestructAccount, NA_FALSE);
 
@@ -245,24 +246,43 @@ void fiPrintAccount(const FIAccount* account, NABool recursive){
   }
   naClearStackIterator(&iter);
 
+
+  NAHeap relevantBookings;
+  naInitHeap(&relevantBookings, -1, NA_HEAP_IS_MIN_HEAP | NA_HEAP_USES_DATETIME_KEY);
+
   NAStackIterator bookiter = naMakeStackAccessor(fiGetPeriodBookings());
   while(naIterateStack(&bookiter)){
     const FIBooking* booking = naGetStackCurpConst(&bookiter);
+    if(fiGetBookingDebitAccount(booking) == account){
+      naInsertHeapElementConst(&relevantBookings, booking, fiGetBookingDateTime(booking), NA_NULL);
+    }else if(fiGetBookingCreditAccount(booking) == account){
+      naInsertHeapElementConst(&relevantBookings, booking, fiGetBookingDateTime(booking), NA_NULL);
+    }
+  }
+  naClearStackIterator(&bookiter);
+
+  while(naGetHeapCount(&relevantBookings)){
+    const FIBooking* booking = naRemoveHeapRootConst(&relevantBookings);
+    NAString* dateString = naNewStringWithDateTime(fiGetBookingDateTime(booking), NA_DATETIME_FORMAT_NATURAL);
     NAString* amountString = naNewStringWithAmount(*fiGetBookingAmount(booking));
     if(fiGetBookingDebitAccount(booking) == account){
-      printf("%s\t\t%s\t%s\n",
+      printf("%s\t%s\t%s\t%s\n",
+        naGetStringUTF8Pointer(dateString),
         naGetStringUTF8Pointer(fiGetBookingText(booking)),
         naGetStringUTF8Pointer(amountString),
         "0");
     }else if(fiGetBookingCreditAccount(booking) == account){
-      printf("%s\t\t%s\t%s\n",
+      printf("%s\t%s\t%s\t%s\n",
+        naGetStringUTF8Pointer(dateString),
         naGetStringUTF8Pointer(fiGetBookingText(booking)),
         "0",
         naGetStringUTF8Pointer(amountString));
     }
     naDelete(amountString);
+    naDelete(dateString);
   }
-  naClearStackIterator(&bookiter);
+
+  naClearHeap(&relevantBookings);
 
   NAString* computeddebitsumstring;
   NAString* computedcreditsumstring;

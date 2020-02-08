@@ -95,9 +95,6 @@ FIPeriod* createYear1(FIPeriod* prevperiod){
   fiDocument(naMakeDateTime(2020, 12, 31, 0, 0, 0), "docs/2021/Jan/Jahresabschluss.doc");
   fiBook(7250.17, gewinnvortrag2990, hauptbuch, "Umbuchung Jahresergebnis 2020");
 
-  fiDocument(naMakeDateTime(2020, 4, 3, 0, 0, 0), "docs/2020/Mar/AppStoreAbrechnung.pdf");
-  fiBook(11.42, debitorenkunden1100, hauptbuch, "XXXXXXXXXXXXXXXXXXXXXXXXXXX");
-
   return y2020;
 }
 
