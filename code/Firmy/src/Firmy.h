@@ -7,11 +7,12 @@
 
 #define FIRMY_VERSION 0
 
-typedef struct FIPeriod   FIPeriod;
-typedef struct FIUnit     FIUnit;
-typedef struct FIFungible FIFungible;
-typedef struct FIBooking  FIBooking;
-typedef struct FIAccount  FIAccount;
+typedef struct FIPeriod     FIPeriod;
+typedef struct FIUnit       FIUnit;
+typedef struct FIFungible   FIFungible;
+typedef struct FIBooking    FIBooking;
+typedef struct FIAccount    FIAccount;
+typedef struct FIExAccount  FIExAccount;
 
 typedef double FIAmount;
 
@@ -23,7 +24,8 @@ typedef enum{
   FIRMY_ACCOUNT_TYPE_LIABILITY,
   FIRMY_ACCOUNT_TYPE_EXPENSE,
   FIRMY_ACCOUNT_TYPE_INCOME,
-} FIAccountType;
+  FIRMY_ACCOUNT_TYPE_EXCHANGE,
+} FIaccountType;
 
 #define FIRMY_MAIN_BOOK_IDENTIFIER  "mainbook"
 #define FIRMY_BALANCE_IDENTIFIER    "balance"
@@ -56,7 +58,7 @@ const FIFungible* fiGetFungible(const NAUTF8Char* identifier);
 // Registers a new financial period. After that, the period is selected to be
 // the current period. No current document is selected after that.
 //
-// If prevperiod is Null, the default accounts (see FIAccountType) will be
+// If prevperiod is Null, the default accounts (see FIaccountType) will be
 // automatically created. If prevperiod is not Null, all accounts of the
 // previous period which have any sum greater than zero will be created for
 // the new period and the saldo of the previous period will be carried over. 
@@ -88,6 +90,19 @@ void fiBook(
   FIAccount* accountdebit,
   FIAccount* accountcredit,
   const NAUTF8Char* text);
+
+// Adds an exchange booking to the current document.
+void fiExch(
+  FIAmount amount,
+  double bookrate,
+  FIAccount* accountdebit,
+  FIAccount* accountcredit,
+  const NAUTF8Char* text);
+
+void fiSetExchangeRate(
+  const FIFungible* fromFungible,
+  const FIFungible* toFungible,
+  double rate);
 
 // Outputs a txt representation of the double bookkeeping.
 void fiPrintAccount(const FIAccount* account, NABool recursive);
