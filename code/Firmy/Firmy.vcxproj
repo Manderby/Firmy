@@ -148,6 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\FIAccount.c" />
+    <ClCompile Include="src\FIAmount.c" />
     <ClCompile Include="src\FIBooking.c" />
     <ClCompile Include="src\FIFungible.c" />
     <ClCompile Include="src\FIPeriod.c" />

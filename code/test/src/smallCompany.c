@@ -93,7 +93,7 @@ FIPeriod* createYear1(FIPeriod* prevperiod){
 
   // Jahresergebnis
   fiDocument(naMakeDateTime(2020, 12, 31, 0, 0, 0), "docs/2021/Jan/Jahresabschluss.doc");
-  fiBook(7250.17, gewinnvortrag2990, hauptbuch, "Umbuchung Jahresergebnis 2020");
+  fiBook(7250.18, gewinnvortrag2990, hauptbuch, "Umbuchung Jahresergebnis 2020");
 
   return y2020;
 }

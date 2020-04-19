@@ -13,7 +13,7 @@ typedef struct FIFungible FIFungible;
 typedef struct FIBooking  FIBooking;
 typedef struct FIAccount  FIAccount;
 
-typedef double FIAmount;
+typedef struct FIAmount   FIAmount;
 
 typedef enum{
   FIRMY_ACCOUNT_TYPE_MAIN_BOOK = 0,
@@ -84,7 +84,7 @@ void fiDocument(NADateTime valueDate, const NAUTF8Char* docString);
 
 // Adds a booking to the current document.
 void fiBook(
-  FIAmount amount,
+  double amount,
   FIAccount* accountdebit,
   FIAccount* accountcredit,
   const NAUTF8Char* text);

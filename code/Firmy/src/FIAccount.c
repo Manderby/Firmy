@@ -39,10 +39,10 @@ FIAccount* fiNewAccount(
   account->name = naNewStringExtraction(newname, 0, -1);
   account->parent = newparent;
   naInitStack(&(account->childs), naSizeof(FIAccount*), 2);
-  account->totaldebitsum  = 0;
-  account->totalcreditsum = 0;
-  account->localdebitsum  = 0;
-  account->localcreditsum = 0;
+  account->totaldebitsum  = fiAmount(0.);
+  account->totalcreditsum = fiAmount(0.);
+  account->localdebitsum  = fiAmount(0.);
+  account->localcreditsum = fiAmount(0.);
   if(account->parent){
     fiAddAccountChild(account->parent, account);
   }
@@ -66,10 +66,10 @@ void fiAddAccountChild(FIAccount* account, FIAccount* child){
 
 void fiCarryAccountOver(FIAccount* account, FIAmount amountDebit, FIAmount amountCredit){
   const NAUTF8Char* text = "Carry Over";
-  if(amountDebit != 0){
-    fiBook(amountDebit, account, NA_NULL, text);
+  if(!fiEqualAmount(amountDebit, 0.)){
+    fiBookAmount(amountDebit, account, NA_NULL, text);
   }else{
-    fiBook(amountCredit, NA_NULL, account, text);
+    fiBookAmount(amountCredit, NA_NULL, account, text);
   }
 }
 
@@ -107,14 +107,14 @@ FIAccount* getAccountParent(const FIAccount* account){
 
 void fiAddAccountDebitSum(FIAccount* account, FIAmount amount, NABool local){
   if(account->type != FIRMY_ACCOUNT_TYPE_MAIN_BOOK){
-    fiAddAccountDebitSum(account->parent, -account->totaldebitsum, NA_FALSE);
-    fiAddAccountCreditSum(account->parent, -account->totalcreditsum, NA_FALSE);
+    fiAddAccountDebitSum(account->parent, fiNegAmount(account->totaldebitsum), NA_FALSE);
+    fiAddAccountCreditSum(account->parent, fiNegAmount(account->totalcreditsum), NA_FALSE);
   }
-  if((amount < 0.) && (account->totaldebitsum < -amount)){
+  if(fiSmallerAmount(amount, fiAmount(0.)) && fiSmallerAmount(account->totaldebitsum, fiNegAmount(amount))){
     printf("amount is negative");
   }
-  account->totaldebitsum = account->totaldebitsum + amount;
-  if(local){account->localdebitsum = account->localdebitsum + amount;}
+  account->totaldebitsum = fiAddAmount(account->totaldebitsum, amount);
+  if(local){account->localdebitsum = fiAddAmount(account->localdebitsum, amount);}
   if(account->type != FIRMY_ACCOUNT_TYPE_MAIN_BOOK){
     fiAddAccountDebitSum(account->parent, account->totaldebitsum, NA_FALSE);
     fiAddAccountCreditSum(account->parent, account->totalcreditsum, NA_FALSE);
@@ -124,14 +124,14 @@ void fiAddAccountDebitSum(FIAccount* account, FIAmount amount, NABool local){
 
 void fiAddAccountCreditSum(FIAccount* account, FIAmount amount, NABool local){
   if(account->type != FIRMY_ACCOUNT_TYPE_MAIN_BOOK){
-    fiAddAccountDebitSum(account->parent, -account->totaldebitsum, NA_FALSE);
-    fiAddAccountCreditSum(account->parent, -account->totalcreditsum, NA_FALSE);
+    fiAddAccountDebitSum(account->parent, fiNegAmount(account->totaldebitsum), NA_FALSE);
+    fiAddAccountCreditSum(account->parent, fiNegAmount(account->totalcreditsum), NA_FALSE);
   }
-  if((amount < 0.) && (account->totalcreditsum < -amount)){
+  if(fiSmallerAmount(amount, fiAmount(0.)) && fiSmallerAmount(account->totalcreditsum, fiNegAmount(amount))){
     printf("amount is negative");
   }
-  account->totalcreditsum = account->totalcreditsum + amount;
-  if(local){account->localcreditsum = account->localcreditsum + amount;}
+  account->totalcreditsum = fiAddAmount(account->totalcreditsum, amount);
+  if(local){account->localcreditsum = fiAddAmount(account->localcreditsum, amount);}
   if(account->type != FIRMY_ACCOUNT_TYPE_MAIN_BOOK){
     fiAddAccountDebitSum(account->parent, account->totaldebitsum, NA_FALSE);
     fiAddAccountCreditSum(account->parent, account->totalcreditsum, NA_FALSE);
@@ -142,14 +142,27 @@ void fiAddAccountCreditSum(FIAccount* account, FIAmount amount, NABool local){
 
 NA_HDEF NAString* naNewStringWithAmount(FIAmount amount){
   int digits = 2;
-  int64 decfacor = naMakeInt64WithDouble(pow(10., (double)digits));
-  int64 units = (int64)(amount * decfacor) / decfacor;
-  int64 decimals = (int64)(amount * decfacor) % decfacor;
+  int i;
+
+  int256 value = amount.decimals;
+  int256 decfactor = naMakeInt256WithDouble(1.);
+  for(i = 18; i > digits; i--){
+    decfactor = naMulInt256(decfactor, naMakeInt256WithDouble(10.));
+  }
+  value = naDivInt256(value, decfactor);
+  int256 decimals = naModInt256(value, naMakeInt256WithDouble(100.));
+  int256 units = naDivInt256(value, naMakeInt256WithDouble(100.));
+  double doublevalue = naCastInt256ToDouble(value);
+  //return naNewStringWithFormat("%.02f", doublevalue);
+
+  //int64 decfacor = naMakeInt64WithDouble(pow(10., (double)digits));
+  //int64 units = (int64)(amount * decfacor) / decfacor;
+  //int64 decimals = (int64)(amount * decfacor) % decfacor;
   if(digits == 0){
-    return naNewStringWithFormat("%lld", units);
+    return naNewStringWithFormat("%lld", naCastInt256ToInt64(units));
   }else{
     NAString* formatstring = naNewStringWithFormat("%%lld.%%0%dlld", (int)digits);
-    NAString* retstring = naNewStringWithFormat(naGetStringUTF8Pointer(formatstring), units, decimals);
+    NAString* retstring = naNewStringWithFormat(naGetStringUTF8Pointer(formatstring), naCastInt256ToInt64(units), naCastInt256ToInt64(decimals));
     naDelete(formatstring);
     return retstring;
   }
@@ -200,23 +213,23 @@ void fiPrintAccount(const FIAccount* account, NABool recursive){
     curdebitsum = fiGetAccountTotalDebitSum(childAccount);
     curcreditsum = fiGetAccountTotalCreditSum(childAccount);
     
-    if(curdebitsum > curcreditsum){
-      curdebitsum -= curcreditsum;
-      curcreditsum = 0.;
+    if(fiGreaterAmount(curdebitsum, curcreditsum)){
+      curdebitsum = fiSubAmount(curdebitsum, curcreditsum);
+      curcreditsum = fiAmount(0.);
     }else{
-      curcreditsum -= curdebitsum;
-      curdebitsum = 0.;
+      curcreditsum = fiSubAmount(curcreditsum, curdebitsum);
+      curdebitsum = fiAmount(0.);
     }
     
-    computeddebitsum = computeddebitsum + curdebitsum;
-    computedcreditsum = computedcreditsum + curcreditsum;
+    computeddebitsum = fiAddAmount(computeddebitsum, curdebitsum);
+    computedcreditsum = fiAddAmount(computedcreditsum, curcreditsum);
     
     NAString* debitstr;
     NAString* creditstr;
     debitstr = naNewStringWithAmount(curdebitsum);
     creditstr = naNewStringWithAmount(curcreditsum);
     
-    if((curdebitsum == 0.) && (curcreditsum == 0.)){
+    if(fiEqualAmount(curdebitsum, 0.) && fiEqualAmount(curcreditsum, 0.)){
       if((fiGetAccountType(childAccount) == FIRMY_ACCOUNT_TYPE_ASSET) || (fiGetAccountType(childAccount) == FIRMY_ACCOUNT_TYPE_EXPENSE)){
         naDelete(creditstr);
         creditstr = naNewString();
@@ -225,11 +238,11 @@ void fiPrintAccount(const FIAccount* account, NABool recursive){
         debitstr = naNewString();
       }
     }else{
-      if(curdebitsum == 0.){
+      if(fiEqualAmount(curdebitsum, 0.)){
         naDelete(debitstr);
         debitstr = naNewString();
       }
-      if(curcreditsum == 0.){
+      if(fiEqualAmount(curcreditsum, 0.)){
         naDelete(creditstr);
         creditstr = naNewString();
       }
@@ -290,11 +303,11 @@ void fiPrintAccount(const FIAccount* account, NABool recursive){
   computeddebitsumstring = naNewStringWithAmount(computeddebitsum);
   computedcreditsumstring = naNewStringWithAmount(computedcreditsum);
   printf("\tSumme:\t%s\t%s\n", naGetStringUTF8Pointer(computeddebitsumstring), naGetStringUTF8Pointer(computedcreditsumstring));
-  if(computeddebitsum > computedcreditsum){
-    computeddiffstring = naNewStringWithAmount(computeddebitsum - computedcreditsum);
+  if(fiGreaterAmount(computeddebitsum, computedcreditsum)){
+    computeddiffstring = naNewStringWithAmount(fiSubAmount(computeddebitsum, computedcreditsum));
     printf("\tSaldo:\t\t%s\n", naGetStringUTF8Pointer(computeddiffstring));
   }else{
-    computeddiffstring = naNewStringWithAmount(computedcreditsum - computeddebitsum);
+    computeddiffstring = naNewStringWithAmount(fiSubAmount(computedcreditsum, computeddebitsum));
     printf("\tSaldo:\t%s\t\n", naGetStringUTF8Pointer(computeddiffstring));
   }
   naDelete(computeddebitsumstring);

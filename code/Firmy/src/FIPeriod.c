@@ -139,7 +139,7 @@ void fiCopyPeriodAccountsFromPrevPeriod(const FIPeriod* prevperiod){
     FIAmount localcreditsum = fiGetAccountLocalCreditSum(oldaccount);
     FIAmount totaldebitsum = fiGetAccountTotalDebitSum(oldaccount);
     FIAmount totalcreditsum = fiGetAccountTotalCreditSum(oldaccount);
-    if((fiGetAccountType(oldaccount) == FIRMY_ACCOUNT_TYPE_MAIN_BOOK) || (totaldebitsum != 0.) || (totalcreditsum != 0.)){
+    if((fiGetAccountType(oldaccount) == FIRMY_ACCOUNT_TYPE_MAIN_BOOK) || !fiEqualAmount(totaldebitsum, 0.) || !fiEqualAmount(totalcreditsum, 0.)){
       if(getAccountParent(oldaccount)){
         FIAccount* newaccount = fiRegisterAccountWithType(
           fiGetAccountFungible(oldaccount),
@@ -152,11 +152,11 @@ void fiCopyPeriodAccountsFromPrevPeriod(const FIPeriod* prevperiod){
         
         
         if((fiGetAccountType(oldaccount) == FIRMY_ACCOUNT_TYPE_ASSET) || (fiGetAccountType(oldaccount) == FIRMY_ACCOUNT_TYPE_LIABILITY)){
-          if((localdebitsum != 0.) || (localcreditsum != 0.)){
-            if(localdebitsum > localcreditsum){
-              fiCarryAccountOver(newaccount, localdebitsum - localcreditsum, 0);
+          if(!fiEqualAmount(localdebitsum, 0.) || !fiEqualAmount(localcreditsum, 0.)){
+            if(fiGreaterAmount(localdebitsum, localcreditsum)){
+              fiCarryAccountOver(newaccount, fiSubAmount(localdebitsum, localcreditsum), fiAmount(0.));
             }else{
-              fiCarryAccountOver(newaccount, 0, localcreditsum - localdebitsum);
+              fiCarryAccountOver(newaccount, fiAmount(0.), fiSubAmount(localcreditsum, localdebitsum));
             }
           }
         }
@@ -238,7 +238,13 @@ FIAccount* fiRegisterAccountWithType(
 
 
 
-void fiBook(FIAmount amount, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text){
+void fiBook(double amount, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text){
+  fiBookAmount(fiAmount(amount), accountdebit, accountcredit, text);
+}
+
+
+
+void fiBookAmount(FIAmount amount, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text){
   if(accountdebit){fiAddAccountDebitSum(accountdebit, amount, NA_TRUE);}
   if(accountcredit){fiAddAccountCreditSum(accountcredit, amount, NA_TRUE);}
 

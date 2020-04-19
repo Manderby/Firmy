@@ -7,6 +7,10 @@
 
 #include FIRMY_NALIB_PATH(NAStack.h)
 
+struct FIAmount{
+  int256 decimals;
+};
+
 // Unit
 FIPeriod* fiGetCurrentPeriod(void);
 NADateTime fiGetCurrentValueDate(void);
@@ -46,11 +50,20 @@ void fiAddAccountCreditSum(FIAccount* account, FIAmount amount, NABool local);
 
 // Booking
 FIBooking* fiNewBooking(FIAmount amount, const FIAccount* accountdebit, const FIAccount* accountcredit, const NAUTF8Char* text);
+void fiBookAmount(FIAmount amount, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text);
 const NADateTime* fiGetBookingDateTime      (const FIBooking* booking);
 const NAString*   fiGetBookingText          (const FIBooking* booking);
 const FIAmount*   fiGetBookingAmount        (const FIBooking* booking);
 const FIAccount*  fiGetBookingDebitAccount  (const FIBooking* booking);
 const FIAccount*  fiGetBookingCreditAccount (const FIBooking* booking);
 
+// Amount
+FIAmount fiAmount(double value);
+NABool   fiEqualAmount(FIAmount amount, double cmpAmount);
+NABool   fiSmallerAmount(FIAmount amount, FIAmount cmpAmount);
+NABool   fiGreaterAmount(FIAmount amount, FIAmount cmpAmount);
+FIAmount fiNegAmount(FIAmount amount);
+FIAmount fiAddAmount(FIAmount amount1, FIAmount amount2);
+FIAmount fiSubAmount(FIAmount amount1, FIAmount amount2);
 
 #endif // FIRMY_INTERNAL_DEFINED
