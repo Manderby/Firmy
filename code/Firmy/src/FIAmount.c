@@ -48,3 +48,10 @@ FIAmount fiSubAmount(FIAmount amount1, FIAmount amount2){
   return retamount;
 }
 
+FIAmount fiMulAmount(FIAmount amount1, double factor){
+  FIAmount retamount;
+  NAInt256 decimals2 = naMakeInt256WithDouble(factor);
+  retamount.decimals = naMulInt256(amount1.decimals, decimals2);
+  return retamount;
+}
+

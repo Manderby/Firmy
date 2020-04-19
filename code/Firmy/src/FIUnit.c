@@ -101,8 +101,9 @@ const FIFungible* fiGetFungible(const NAUTF8Char* identifier){
   NAStackIterator iter = naMakeStackAccessor(&(fi_unit->fungibles));
   const FIFungible* fungible = NA_NULL;
   while(naIterateStack(&iter)){
-    fungible = naGetStackCurpConst(&iter);
-    if(naEqualStringToUTF8CString(fiGetFungibleIdentifier(fungible), identifier, NA_TRUE)){
+    const FIFungible* curfungible = naGetStackCurpConst(&iter);
+    if(naEqualStringToUTF8CString(fiGetFungibleIdentifier(curfungible), identifier, NA_TRUE)){
+      fungible = curfungible;
       break;
     }
   }
