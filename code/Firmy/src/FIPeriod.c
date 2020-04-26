@@ -139,10 +139,11 @@ void fiCopyPeriodAccountsFromPrevPeriod(const FIPeriod* prevperiod){
     FIAmount localCreditSum = fiGetAccountLocalCreditSum(oldaccount);
     FIAmount totalDebitSum = fiGetAccountTotalDebitSum(oldaccount);
     FIAmount totalCreditSum = fiGetAccountTotalCreditSum(oldaccount);
-    if((fiGetAccountType(oldaccount) == FIRMY_ACCOUNT_TYPE_MAIN_BOOK) || !fiEqualAmount(totalDebitSum, 0.) || !fiEqualAmount(totalCreditSum, 0.)){
+    if((fiGetAccountType(oldaccount) == FIRMY_ACCOUNT_TYPE_MAIN_BOOK) || !fiIsAmountZero(totalDebitSum) || !fiIsAmountZero(totalCreditSum)){
       if(getAccountParent(oldaccount)){
+        const FIFungible* fungible = fiGetAccountAnyFungible(oldaccount);
         FIAccount* newaccount = fiRegisterAccountWithType(
-          fiGetAccountAnyFungible(oldaccount),
+          fungible,
           naGetStringUTF8Pointer(fiGetAccountIdentifier(oldaccount)),
           naGetStringUTF8Pointer(fiGetAccountName(oldaccount)),
           fiGetAccount(naGetStringUTF8Pointer(fiGetAccountIdentifier(getAccountParent(oldaccount)))),
@@ -150,13 +151,12 @@ void fiCopyPeriodAccountsFromPrevPeriod(const FIPeriod* prevperiod){
 
         naGetStringUTF8Pointer(fiGetAccountIdentifier(newaccount));
         
-        
         if((fiGetAccountType(oldaccount) == FIRMY_ACCOUNT_TYPE_ASSET) || (fiGetAccountType(oldaccount) == FIRMY_ACCOUNT_TYPE_LIABILITY)){
-          if(!fiEqualAmount(localDebitSum, 0.) || !fiEqualAmount(localCreditSum, 0.)){
+          if(!fiIsAmountZero(localDebitSum) || !fiIsAmountZero(localCreditSum)){
             if(fiGreaterAmount(localDebitSum, localCreditSum)){
-              fiCarryAccountOver(newaccount, fiSubAmount(localDebitSum, localCreditSum), fiAmount(0.));
+              fiCarryAccountOver(newaccount, fiSubAmount(localDebitSum, localCreditSum), fiAmountZero());
             }else{
-              fiCarryAccountOver(newaccount, fiAmount(0.), fiSubAmount(localCreditSum, localDebitSum));
+              fiCarryAccountOver(newaccount, fiAmountZero(), fiSubAmount(localCreditSum, localDebitSum));
             }
           }
         }
@@ -239,7 +239,7 @@ FIAccount* fiRegisterAccountWithType(
 
 
 void fiBook(double amount, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text){
-  fiBookAmount(fiAmount(amount), accountdebit, accountcredit, text);
+  fiBookAmount(fiAmount(amount, fiGetAccountDebitFungible(accountdebit)), accountdebit, accountcredit, text);
 }
 
 
@@ -247,7 +247,7 @@ void fiBook(double amount, FIAccount* accountdebit, FIAccount* accountcredit, co
 void fiBookAmount(FIAmount amount, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text){
   #ifndef NDEBUG
     if(accountdebit && accountcredit && fiGetAccountDebitFungible(accountdebit) != fiGetAccountCreditFungible(accountcredit))
-      fiError("Accounts do not have the same fungible. Use fiBookEx.");
+      fiError("Accounts do not have the same fungible. Use fiExch.");
   #endif
   if(accountdebit){fiAddAccountDebitSum(accountdebit, amount, NA_TRUE);}
   if(accountcredit){fiAddAccountCreditSum(accountcredit, amount, NA_TRUE);}
@@ -258,7 +258,11 @@ void fiBookAmount(FIAmount amount, FIAccount* accountdebit, FIAccount* accountcr
 
 
 
-void fiExch(FIAmount amount, double bookrate, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text){
+void fiExch(double amount, double bookrate, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text){
+  fiExchAmount(fiAmount(amount, fiGetAccountDebitFungible(accountdebit)), bookrate, accountdebit, accountcredit, text);
+}
+
+void fiExchAmount(FIAmount amount, double bookrate, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text){
   #ifndef NDEBUG
     if(fiGetAccountDebitFungible(accountdebit) == fiGetAccountCreditFungible(accountcredit))
       fiError("Accounts have the same fungible. Use fiBook.");

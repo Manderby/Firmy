@@ -8,7 +8,9 @@
 
 
 FIPeriod* createYear1(FIPeriod* prevperiod){
+  
   const FIFungible* chf = fiGetFungible("CHF");
+  const FIFungible* eur = fiGetFungible("EUR");
 
   FIPeriod* y2020 = fiRegisterPeriod(
     "Year of the rat",
@@ -22,6 +24,7 @@ FIPeriod* createYear1(FIPeriod* prevperiod){
   FIAccount* umlauf10 = fiRegisterAccount(chf, "umlauf", "Umlaufverfmoegen (10)", aktiven); 
   FIAccount* fluessig100 = fiRegisterAccount(chf, "fluessig", "Fluessigmittel (100)", umlauf10); 
   FIAccount* bankkonto1020 = fiRegisterAccount(chf, "bankkonto", "Raiffeisen Konto (1020)", fluessig100); 
+  FIAccount* bankkonto1021 = fiRegisterAccount(eur, "eurbankkonto", "Euro Raiffeisen Konto (1021)", fluessig100); 
   FIAccount* forderungen110 = fiRegisterAccount(chf, "forderungen", "Forderungen (110)", umlauf10);
   FIAccount* debitorenkunden1100 = fiRegisterAccount(chf, "debitorenkunden", "Debitoren Kunden (1100)", forderungen110);
 
@@ -53,6 +56,10 @@ FIPeriod* createYear1(FIPeriod* prevperiod){
   // Gruendungsbeitrag
   fiDocument(naMakeDateTime(2020, 2, 5, 21, 46, 24), "Ordner 2020 Januar Firmenbudget, RefNr 1");
   fiBook(100000.00, bankkonto1020, aktkapital2800, "Gruendungsbeitrag");
+
+  fiDocument(naMakeDateTime(2020, 2, 5, 21, 46, 25), "Saving money in euros");
+  //fiBook(1234., bankkonto1021, bankkonto1020, "Finanzspritze");
+  fiExch(123.456, 9.87, bankkonto1021, bankkonto1020, "Finanzspritze");
 
   // Lohn
   fiDocument(naMakeDateTime(2020, 2, 6, 0, 0, 0), "Lohnauszug Manderby Februar");
@@ -130,6 +137,11 @@ int main(int argc, const char** argv){
   fiRegisterFungible(
     "Schweizer Franken",
     "CHF",
+    2);
+
+  fiRegisterFungible(
+    "Euro",
+    "EUR",
     2);
 
   /*FIPeriod* year1 = */createYear1(NA_NULL);

@@ -44,7 +44,7 @@ const NAString* fiGetFungibleIdentifier(const FIFungible* fungible){
 
 
 
-NAInt fiGetFungibleDecimals(FIFungible* fungible){
+NAInt fiGetFungibleDecimals(const FIFungible* fungible){
   return fungible->decimals;
 }
 

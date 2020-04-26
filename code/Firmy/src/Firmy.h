@@ -93,7 +93,7 @@ void fiBook(
 
 // Adds an exchange booking to the current document.
 void fiExch(
-  FIAmount amount,
+  double amount,
   double bookrate,
   FIAccount* accountdebit,
   FIAccount* accountcredit,
