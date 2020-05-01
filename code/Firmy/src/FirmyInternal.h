@@ -8,6 +8,7 @@
 #include FIRMY_NALIB_PATH(NAStack.h)
 
 struct FIAmount{
+  // A decimal fixpoint with 36 decimal digits.
   int256 decimals;
 };
 
@@ -31,7 +32,7 @@ FIFungible* fiNewFungible(const NAUTF8Char* name, const NAUTF8Char* identifier, 
 const NAString* fiGetFungibleIdentifier(const FIFungible* fungible);
 NAInt fiGetFungibleDecimals(const FIFungible* fungible);
 FIAccount* fiGetExchangeAccount(const FIFungible* fromFungible, const FIFungible* toFungible);
-double fiGetExchangeRate(const FIFungible* fromFungible, const FIFungible* toFungible);
+FIAmount fiGetExchangeRate(const FIFungible* fromFungible, const FIFungible* toFungible);
 
 // Account
 // Registers a new account for the current period.
@@ -46,7 +47,7 @@ FIaccountType fiGetAccountType(const FIAccount* account);
 const FIFungible* fiGetAccountAnyFungible(const FIAccount* account);
 const FIFungible* fiGetAccountDebitFungible(const FIAccount* account);
 const FIFungible* fiGetAccountCreditFungible(const FIAccount* account);
-double fiGetAccountExchangeRate(const FIAccount* account);
+FIAmount fiGetAccountExchangeRate(const FIAccount* account);
 void fiSetAccountExchangeRate(FIAccount* account, double rate);
 FIAmount fiGetAccountLocalDebitSum(const FIAccount* account);
 FIAmount fiGetAccountLocalCreditSum(const FIAccount* account);
@@ -59,7 +60,7 @@ void fiAddAccountCreditSum(FIAccount* account, FIAmount amount, NABool local);
 // Booking
 FIBooking* fiNewBooking(FIAmount amount, const FIAccount* accountdebit, const FIAccount* accountcredit, const NAUTF8Char* text);
 void fiBookAmount(FIAmount amount, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text);
-void fiExchAmount(FIAmount amount, double bookrate, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text);
+void fiExchAmount(FIAmount amount, FIAmount bookrate, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text);
 const NADateTime* fiGetBookingDateTime      (const FIBooking* booking);
 const NAString*   fiGetBookingText          (const FIBooking* booking);
 const FIAmount*   fiGetBookingAmount        (const FIBooking* booking);
@@ -68,13 +69,14 @@ const FIAccount*  fiGetBookingCreditAccount (const FIBooking* booking);
 
 // Amount
 FIAmount fiAmountZero();
-FIAmount fiAmount(double value, const FIFungible* fungible);
+FIAmount fiAmountOne();
+FIAmount fiAmount(double value);
 NABool   fiIsAmountZero(FIAmount amount);
 NABool   fiSmallerAmount(FIAmount amount, FIAmount cmpAmount);
 NABool   fiGreaterAmount(FIAmount amount, FIAmount cmpAmount);
 FIAmount fiNegAmount(FIAmount amount);
 FIAmount fiAddAmount(FIAmount amount1, FIAmount amount2);
 FIAmount fiSubAmount(FIAmount amount1, FIAmount amount2);
-FIAmount fiMulAmount(FIAmount amount1, double factor);
+FIAmount fiMulAmount(FIAmount amount1, FIAmount factor);
 
 #endif // FIRMY_INTERNAL_DEFINED

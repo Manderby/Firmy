@@ -239,7 +239,7 @@ FIAccount* fiRegisterAccountWithType(
 
 
 void fiBook(double amount, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text){
-  fiBookAmount(fiAmount(amount, fiGetAccountDebitFungible(accountdebit)), accountdebit, accountcredit, text);
+  fiBookAmount(fiAmount(amount), accountdebit, accountcredit, text);
 }
 
 
@@ -259,10 +259,10 @@ void fiBookAmount(FIAmount amount, FIAccount* accountdebit, FIAccount* accountcr
 
 
 void fiExch(double amount, double bookrate, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text){
-  fiExchAmount(fiAmount(amount, fiGetAccountDebitFungible(accountdebit)), bookrate, accountdebit, accountcredit, text);
+  fiExchAmount(fiAmount(amount), fiAmount(bookrate), accountdebit, accountcredit, text);
 }
 
-void fiExchAmount(FIAmount amount, double bookrate, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text){
+void fiExchAmount(FIAmount amount, FIAmount bookrate, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text){
   #ifndef NDEBUG
     if(fiGetAccountDebitFungible(accountdebit) == fiGetAccountCreditFungible(accountcredit))
       fiError("Accounts have the same fungible. Use fiBook.");
@@ -275,7 +275,7 @@ void fiExchAmount(FIAmount amount, double bookrate, FIAccount* accountdebit, FIA
   FIAccount* exac = fiGetExchangeAccount(fiGetAccountCreditFungible(accountdebit), fiGetAccountDebitFungible(accountcredit));
 
   fiBookAmount(amount, accountdebit, exac, text);
-  fiBookAmount(fiMulAmount(amount, naInv(bookrate)), exac, accountcredit, text);
+  fiBookAmount(fiMulAmount(amount, bookrate), exac, accountcredit, text);
 }
 
 

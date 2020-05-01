@@ -2,24 +2,35 @@
 #include "Firmy.h"
 #include "FirmyInternal.h"
 
-//#include FIRMY_NALIB_PATH(NAString.h)
-
 FIAmount fiAmountZero(){
   FIAmount amount;
   amount.decimals = NA_ZERO_256;
   return amount;
 }
-
-FIAmount fiAmount(double value, const FIFungible* fungible){
+FIAmount fiAmountOne(){
   FIAmount amount;
-  int i;
-  int256 eighteen = naMakeInt256WithDouble(1.);
-  for(i = 0; i < 18 - fiGetFungibleDecimals(fungible); i++){
-    eighteen = naMulInt256(eighteen, naMakeInt256WithDouble(10.));
-  }
+  // A 1 with 36 zeros.
+  amount.decimals = naMakeInt256(NA_ZERO_128, naMakeUInt128(naMakeUInt64(0x00c097ce, 0x7bc90715), naMakeUInt64(0xb34b9f10, NA_ZERO_32)));
+  return amount;
+}
+double fiAmountDoubleDecimalMultiplicand(){
+  return naExp10d(15);  // 15 == DBL_DIG
+}
+NAInt256 fiAmountDoubleRemainingMultiplicand(){
+  // A 1 with (36 - 15) = 21 zeros.   15 == DBL_DIG
+  return naMakeInt256(NA_ZERO_128, naMakeUInt128(naMakeUInt64(NA_ZERO_32, 0x00000036), naMakeUInt64(0x35c9adc5, 0xdea00000)));
+}
 
-  value *= pow(10., (double)fiGetFungibleDecimals(fungible));
-  amount.decimals = naMulInt256(naMakeInt256WithDouble(value), eighteen);
+FIAmount fiAmount(double value){
+  // todo computation of negative numbers
+  NAInt64 integer = naGetDoubleInteger(value);
+  NAInt64 fraction = naGetDoubleFraction(value);
+
+  FIAmount amount;
+  amount.decimals = naMulInt256(naMakeInt256WithLo(naMakeInt128WithLo(integer)), fiAmountOne().decimals);
+  NAInt256 subDecimals = naMulInt256(naMakeInt256WithLo(naMakeInt128WithLo(fraction)), fiAmountDoubleRemainingMultiplicand());
+  amount.decimals = naAddInt256(amount.decimals, subDecimals);
+
   return amount;
 }
 
@@ -54,36 +65,68 @@ FIAmount fiSubAmount(FIAmount amount1, FIAmount amount2){
 }
 
 
-// 4 Unit, 3 Decimal = 7 Digits in total
-// 123.456 * 9.87
-// 123456 / 1000 * 987 / 100
-// 123456 * 987 / 1000 / 100
-// 123456 * (900 + 87) / 1000 / 100
-// 123456 * (900 / 100 + 87 / 100) / 1000
-// 123456 * (9 + 87 / 100) / 1000
-// (123456 * 9 + 123456 * 87 / 100) / 1000
-// (123456 * 9 + (123400 + 56) * 87 / 100) / 1000
-// (123456 * 9 + (1234 * 100 + 56) * 87 / 100) / 1000
-// (123456 * 9 + (1234 * 100 * 87 / 100 + 56 * 87 / 100)) / 1000
-// (123456 * 9 + (1234 * 87 + (56 * 87) / 100)) / 1000 <--------------
-// (123456 * 9 + (107358 + 4872 / 100)) / 1000
-// (1111104 + (107358 + 48.72)) / 1000
-// (1111104 + (107358 + 48.72)) / 1000
-// (1111104 + 107406.72) / 1000
-// 1218510.72 / 1000
-// 1218.51072
-// Desired result:
-// 1218.51072
+// Assuming type of 2nd operand has 2 Decimal digits.
+// Assuming type of 1st operand has 3 decimal digits.
+// Assuming type of 1st operand can only accurately store 4 unit digits.
+// Meaning: Any partial result MUST not exceed 7 digits.
+// Except for the multiplication of the units which can in fact overflow.
 
-NAInt256 naMulInt256WithFixedDecimals(NAInt256 v1, NAInt256 v2, NAInt256 decimalBase){
-  NAInt256 v1Hi = naDivInt256(v1, decimalBase);
-  NAInt256 v1Lo = naModInt256(v1, decimalBase);
-  NAInt256 v2Hi = naDivInt256(v2, decimalBase);
-  NAInt256 v2Lo = naModInt256(v2, decimalBase);
-  NAInt256 rounder = naShrInt256(decimalBase, 1); // todo: make this a true division by 2
+// representation as floating point numbers:
+// 123.456 * 9.87
+// We multiply both operands such that they become integral.
+// 123456 / 1000 * 987 / 100
+// Rearrangement
+// 123456 * 987 / 100 / 1000
+// We split the 2nd operand into the unit and decimal parts
+// 123456 * (900 + 87) / 100 / 1000
+// Expand division by 100
+// 123456 * (900 / 100 + 87 / 100) / 1000
+// Shorten expresseion 900 / 100
+// 123456 * (9 + 87 / 100) / 1000
+// Expand multiplication with 123456
+// (123456 * 9 + 123456 * 87 / 100) / 1000
+// 123456 * 87 could overflow, so split 123456 into unit and decimal parts
+// (123456 * 9 + (123400 + 56) * 87 / 100) / 1000
+// replace 123400 with 1234 * 100
+// (123456 * 9 + (1234 * 100 + 56) * 87 / 100) / 1000
+// Expand multiplication with (87 / 100)
+// (123456 * 9 + (1234 * 100 * 87 / 100 + 56 * 87 / 100)) / 1000
+// Simplify 100 / 100
+// (123456 * 9 + (1234 * 87 + (56 * 87) / 100)) / 1000
+// Add 50 for rounding in stead of flooring of the last decimal digit
+// (123456 * 9 + (1234 * 87 + (56 * 87 + 50) / 100)) / 1000
+// And there we are. This last line is the one actually implemented below.
+//
+// This will compute as follows:
+// (123456 * 9 + (107358 + (4872 + 50) / 100)) / 1000
+// (123456 * 9 + (107358 + 4922 / 100)) / 1000
+// (1111104 + (107358 + 49)) / 1000      last two digits lost
+// (1111104 + 107407) / 1000
+// 1218511 / 1000
+// 1218.511
+//
+// Desired result when computed directly with floating point:
+// 1218.51072
+// 1218.511    round to 3 decimal digits
+
+// Multiplies v1 with v2 but assumes v2 is a fixed point number. The number of fractional
+// digits of v2 is given by the fractionBase. For example fractionBase = 1000 for 3 decimals.
+NAInt256 naMulInt256WithFixedDecimals(NAInt256 v1, NAInt256 v2, NAInt256 fractionBase, NABool roundLastDecimal){
+  // todo computation of negative numbers
+  NAInt256 v1Hi = naDivInt256(v1, fractionBase);
+  NAInt256 v1Lo = naModInt256(v1, fractionBase);
+  NAInt256 v2Hi = naDivInt256(v2, fractionBase);
+  NAInt256 v2Lo = naModInt256(v2, fractionBase);
 
   NAInt256 lolo = naMulInt256(v1Lo, v2Lo);
-  lolo = naDivInt256(lolo, decimalBase);
+  if(roundLastDecimal){
+    #if NA_SIGNED_INTEGER_ENCODING != NA_SIGNED_INTEGER_ENCODING_TWOS_COMPLEMENT
+      naError("Using shift operation for division by two while not using 2s complement");
+    #endif
+    NAInt256 rounder = naShrInt256(fractionBase, 1);
+    lolo = naAddInt256(lolo, rounder);
+  }
+  lolo = naDivInt256(lolo, fractionBase);
 
   NAInt256 hilo = naMulInt256(v1Hi, v2Lo);
   NAInt256 lo = naAddInt256(hilo, lolo);
@@ -92,22 +135,9 @@ NAInt256 naMulInt256WithFixedDecimals(NAInt256 v1, NAInt256 v2, NAInt256 decimal
   return naAddInt256(hihi, lo);
 }
 
-FIAmount fiMulAmount(FIAmount amount1, double factor){
+FIAmount fiMulAmount(FIAmount amount1, FIAmount factor){
   FIAmount retamount;
-
-  int i;
-  int256 eighteen = naMakeInt256WithDouble(1.);
-  for(i = 0; i < 18; i++){
-    eighteen = naMulInt256(eighteen, naMakeInt256WithDouble(10.));
-  }
-
-  //NAInt256 decimals2 = naMakeInt256WithDouble(factor * 100.);
-  //decimals2 = naMulInt256(decimals2, eighteen);
-  //decimals2 = naDivInt256(decimals2, naMakeInt256WithDouble(100.));
-
-  NAInt256 decimals2 = naMakeInt256(NA_ZERO_128, naMakeUInt128(NA_ZERO_64, 0x88f948b4dd1b0000));
-
-  retamount.decimals = naMulInt256WithFixedDecimals(amount1.decimals, decimals2, eighteen, NA_FALSE);
+  retamount.decimals = naMulInt256WithFixedDecimals(amount1.decimals, factor.decimals, fiAmountOne().decimals, NA_FALSE);
   return retamount;
 }
 

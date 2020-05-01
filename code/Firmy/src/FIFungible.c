@@ -70,8 +70,8 @@ FIAccount* fiGetExchangeAccount(const FIFungible* fromFungible, const FIFungible
 
 
 
-double fiGetExchangeRate(const FIFungible* fromFungible, const FIFungible* toFungible){
-  double rate = 1.;
+FIAmount fiGetExchangeRate(const FIFungible* fromFungible, const FIFungible* toFungible){
+  FIAmount rate = fiAmountOne();
   if(fromFungible != toFungible){
 
     FIAccount* foundaccount = NA_NULL;
