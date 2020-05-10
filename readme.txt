@@ -1,5 +1,5 @@
-The software package "Firmy" is a small accounting implementation, providing
-a basic interface for "double book-keeping".
+The software package "Firmy" is a small accounting implementation,
+providing a basic interface for "double book-keeping".
 
 It is published with the unilicense and hence is public domain.
 
@@ -8,26 +8,22 @@ Future release versions will be available as tags.
 
 
 
-Installation:
--------------
-Firmy requires "NALib", a software package provided by Tobias Stamm.
+Cloning with submodules:
+------------------------
 
-1. Download (or clone) the Firmy package onto your computer.
-2. Download (or clone) the NALib package onto your computer in the same
-   parent folder you downloaded the Firmy package into. Your folder
-   structure should look something like this:
+Firmy requires "NALib", a submodule provided by Tobias Stamm.
 
-   ParentFolder --+-- Firmy
-                  |-- NALib
+1. Either clone Firmy with the following git command:
+   git clone --recurse-submodules https://XXXXXX/Firmy
+
+2. Or write the following commands:
+   git clone https://XXXXXX/Firmy
+   cd Firmy
+   git submodule init
+   git submodule update
 
 3. Open the provided project/solution file in the Firmy/proj folder.
-4. It should compile and run without errors in XCode and VisualStudio.
-
-5. In case you choose to have a different folder structure, make sure to
-   include the NALib source and/or project files manually with the
-   correct path.
-   The easiest way though is to adjust the macro FIRMY_NALIB_PATH on top
-   of the Firmy.h header file.
+   It should compile and run without errors in XCode and VisualStudio.
 
 
 
