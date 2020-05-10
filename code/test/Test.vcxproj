@@ -142,9 +142,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\NALib\code\NALib\NALib.vcxproj">
-      <Project>{d03034cf-5ce8-4e68-8fd9-d5820e2745ba}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Firmy\Firmy.vcxproj">
       <Project>{8134e90d-32ba-4659-b309-129f936b58ac}</Project>
     </ProjectReference>

@@ -3,7 +3,7 @@
 #define FIRMY_COMMON_DEFINED
 
 #define FIRMY_STRINGIFY(A) #A
-#define FIRMY_NALIB_PATH(file) FIRMY_STRINGIFY(../../../../NALib/code/NALib/src/file)
+#define FIRMY_NALIB_PATH(file) FIRMY_STRINGIFY(../../../lib/NALib/code/NALib/src/file)
 
 #define FIRMY_VERSION 0
 
