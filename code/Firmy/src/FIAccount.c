@@ -193,16 +193,16 @@ void fiAddAccountCreditSum(FIAccount* account, FIAmount amount, NABool local){
 NA_HDEF NAString* naNewStringWithAmount(FIAmount amount, const FIFungible* fungible){
   int i;
 
-  NAInt256 units = naDivInt256(amount.decimals, fiAmountOne().decimals);
-  NAInt256 decimals = naModInt256(amount.decimals, fiAmountOne().decimals);
+  NAi256 units = naDivi256(amount.decimals, fiAmountOne().decimals);
+  NAi256 decimals = naModi256(amount.decimals, fiAmountOne().decimals);
 
   // todo: This is rubbisly implemented. Do it gooder.
-  NAInt256 decimalTen = naMakeInt256WithDouble(1.);
+  NAi256 decimalTen = naMakei256WithDouble(1.);
   for(i = 0; i < 36 - fiGetFungibleDecimals(fungible); i++){
-    decimalTen = naMulInt256(decimalTen, naMakeInt256WithDouble(10.));
+    decimalTen = naMuli256(decimalTen, naMakei256WithDouble(10.));
   }
 
-  decimals = naDivInt256(decimals, decimalTen);
+  decimals = naDivi256(decimals, decimalTen);
 
 
   //int256 value = amount.decimals;
@@ -220,10 +220,10 @@ NA_HDEF NAString* naNewStringWithAmount(FIAmount amount, const FIFungible* fungi
   //int64 units = (int64)(amount * decfacor) / decfacor;
   //int64 decimals = (int64)(amount * decfacor) % decfacor;
   if(fiGetFungibleDecimals(fungible) == 0){
-    return naNewStringWithFormat("%lld", naCastInt256ToInt32(units));
+    return naNewStringWithFormat("%lld", naCasti256Toi32(units));
   }else{
     NAString* formatstring = naNewStringWithFormat("%%lld.%%0%dlld", (int)fiGetFungibleDecimals(fungible));
-    NAString* retstring = naNewStringWithFormat(naGetStringUTF8Pointer(formatstring), naCastInt256ToInt64(units), naCastInt256ToInt64(decimals));
+    NAString* retstring = naNewStringWithFormat(naGetStringUTF8Pointer(formatstring), naCasti256Toi64(units), naCasti256Toi64(decimals));
     naDelete(formatstring);
     return retstring;
   }

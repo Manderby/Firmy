@@ -4,63 +4,63 @@
 
 FIAmount fiAmountZero(){
   FIAmount amount;
-  amount.decimals = NA_ZERO_256;
+  amount.decimals = NA_ZERO_i256;
   return amount;
 }
 FIAmount fiAmountOne(){
   FIAmount amount;
   // A 1 with 36 zeros.
-  amount.decimals = naMakeInt256(NA_ZERO_128, naMakeUInt128(naMakeUInt64(0x00c097ce, 0x7bc90715), naMakeUInt64(0xb34b9f10, NA_ZERO_32)));
+  amount.decimals = naMakei256(NA_ZERO_i128, naMakeu128(naMakeu64(0x00c097ce, 0x7bc90715), naMakeu64(0xb34b9f10, NA_ZERO_u32)));
   return amount;
 }
 double fiAmountDoubleDecimalMultiplicand(){
   return naExp10d(15);  // 15 == DBL_DIG
 }
-NAInt256 fiAmountDoubleRemainingMultiplicand(){
+NAi256 fiAmountDoubleRemainingMultiplicand(){
   // A 1 with (36 - 15) = 21 zeros.   15 == DBL_DIG
-  return naMakeInt256(NA_ZERO_128, naMakeUInt128(naMakeUInt64(NA_ZERO_32, 0x00000036), naMakeUInt64(0x35c9adc5, 0xdea00000)));
+  return naMakei256(NA_ZERO_i128, naMakeu128(naMakeu64(NA_ZERO_u32, 0x00000036), naMakeu64(0x35c9adc5, 0xdea00000)));
 }
 
 FIAmount fiAmount(double value){
   // todo computation of negative numbers
-  NAInt64 integer = naGetDoubleInteger(value);
-  NAInt64 fraction = naGetDoubleFraction(value);
+  NAi64 integer = naGetDoubleInteger(value);
+  NAi64 fraction = naGetDoubleFraction(value);
 
   FIAmount amount;
-  amount.decimals = naMulInt256(naMakeInt256WithLo(naMakeInt128WithLo(integer)), fiAmountOne().decimals);
-  NAInt256 subDecimals = naMulInt256(naMakeInt256WithLo(naMakeInt128WithLo(fraction)), fiAmountDoubleRemainingMultiplicand());
-  amount.decimals = naAddInt256(amount.decimals, subDecimals);
+  amount.decimals = naMuli256(naMakei256WithLo(naMakei128WithLo(integer)), fiAmountOne().decimals);
+  NAi256 subDecimals = naMuli256(naMakei256WithLo(naMakei128WithLo(fraction)), fiAmountDoubleRemainingMultiplicand());
+  amount.decimals = naAddi256(amount.decimals, subDecimals);
 
   return amount;
 }
 
 NABool fiIsAmountZero(FIAmount amount){
-  return naEqualInt256(amount.decimals, NA_ZERO_256);
+  return naEquali256(amount.decimals, NA_ZERO_i256);
 }
 
 NABool fiSmallerAmount(FIAmount amount, FIAmount cmpAmount){
-  return naSmallerInt256(amount.decimals, cmpAmount.decimals);
+  return naSmalleri256(amount.decimals, cmpAmount.decimals);
 }
 
 NABool fiGreaterAmount(FIAmount amount, FIAmount cmpAmount){
-  return naGreaterInt256(amount.decimals, cmpAmount.decimals);
+  return naGreateri256(amount.decimals, cmpAmount.decimals);
 }
 
 FIAmount fiNegAmount(FIAmount amount){
   FIAmount retamount;
-  retamount.decimals = naNegInt256(amount.decimals);
+  retamount.decimals = naNegi256(amount.decimals);
   return retamount;
 }
 
 FIAmount fiAddAmount(FIAmount amount1, FIAmount amount2){
   FIAmount retamount;
-  retamount.decimals = naAddInt256(amount1.decimals, amount2.decimals);
+  retamount.decimals = naAddi256(amount1.decimals, amount2.decimals);
   return retamount;
 }
 
 FIAmount fiSubAmount(FIAmount amount1, FIAmount amount2){
   FIAmount retamount;
-  retamount.decimals = naSubInt256(amount1.decimals, amount2.decimals);
+  retamount.decimals = naSubi256(amount1.decimals, amount2.decimals);
   return retamount;
 }
 
@@ -111,28 +111,28 @@ FIAmount fiSubAmount(FIAmount amount1, FIAmount amount2){
 
 // Multiplies v1 with v2 but assumes v2 is a fixed point number. The number of fractional
 // digits of v2 is given by the fractionBase. For example fractionBase = 1000 for 3 decimals.
-NAInt256 naMulInt256WithFixedDecimals(NAInt256 v1, NAInt256 v2, NAInt256 fractionBase, NABool roundLastDecimal){
+NAi256 naMulInt256WithFixedDecimals(NAi256 v1, NAi256 v2, NAi256 fractionBase, NABool roundLastDecimal){
   // todo computation of negative numbers
-  NAInt256 v1Hi = naDivInt256(v1, fractionBase);
-  NAInt256 v1Lo = naModInt256(v1, fractionBase);
-  NAInt256 v2Hi = naDivInt256(v2, fractionBase);
-  NAInt256 v2Lo = naModInt256(v2, fractionBase);
+  NAi256 v1Hi = naDivi256(v1, fractionBase);
+  NAi256 v1Lo = naModi256(v1, fractionBase);
+  NAi256 v2Hi = naDivi256(v2, fractionBase);
+  NAi256 v2Lo = naModi256(v2, fractionBase);
 
-  NAInt256 lolo = naMulInt256(v1Lo, v2Lo);
+  NAi256 lolo = naMuli256(v1Lo, v2Lo);
   if(roundLastDecimal){
     #if NA_SIGNED_INTEGER_ENCODING != NA_SIGNED_INTEGER_ENCODING_TWOS_COMPLEMENT
       naError("Using shift operation for division by two while not using 2s complement");
     #endif
-    NAInt256 rounder = naShrInt256(fractionBase, 1);
-    lolo = naAddInt256(lolo, rounder);
+    NAi256 rounder = naShri256(fractionBase, 1);
+    lolo = naAddi256(lolo, rounder);
   }
-  lolo = naDivInt256(lolo, fractionBase);
+  lolo = naDivi256(lolo, fractionBase);
 
-  NAInt256 hilo = naMulInt256(v1Hi, v2Lo);
-  NAInt256 lo = naAddInt256(hilo, lolo);
+  NAi256 hilo = naMuli256(v1Hi, v2Lo);
+  NAi256 lo = naAddi256(hilo, lolo);
 
-  NAInt256 hihi = naMulInt256(v1, v2Hi);
-  return naAddInt256(hihi, lo);
+  NAi256 hihi = naMuli256(v1, v2Hi);
+  return naAddi256(hihi, lo);
 }
 
 FIAmount fiMulAmount(FIAmount amount1, FIAmount factor){
