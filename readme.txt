@@ -11,10 +11,10 @@ Future release versions will be available as tags.
 Cloning with submodules:
 ------------------------
 
-Firmy requires "NALib", a submodule provided by Tobias Stamm.
+Firmy requires the submodule "NALib"
 
 1. Either clone Firmy with the following git command:
-   git clone --recurse-submodules https://XXXXXX/Firmy
+   git clone --recursive https://XXXXXX/Firmy
 
 2. Or write the following commands:
    git clone https://XXXXXX/Firmy
