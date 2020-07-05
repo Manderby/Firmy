@@ -9,6 +9,7 @@ struct FIAccount{
   FIaccountType type;
   const FIFungible* debitFungible;
   const FIFungible* creditFungible;
+  NABool dirty;
   FIAmount exchangeRate;
   NAString* identifier;
   NAString* name;
@@ -38,6 +39,7 @@ FIAccount* fiNewAccount(
   account->type = accountType;
   account->debitFungible = fungible;
   account->creditFungible = fungible;
+  account->dirty = NA_TRUE;
   account->exchangeRate = fiAmountOne();
   if(newIdentifier){
     account->identifier = naNewStringExtraction(newIdentifier, 0, -1);
@@ -145,10 +147,37 @@ FIAmount fiGetAccountLocalDebitSum(const FIAccount* account){
 FIAmount fiGetAccountLocalCreditSum(const FIAccount* account){
   return account->localCreditSum;
 }
+void fiComputeTotalSums(FIAccount* account){
+  account->totalDebitSum = account->localDebitSum;
+  account->totalCreditSum = account->localCreditSum;
+  NAStackIterator iter = naMakeStackAccessor(&(account->childs));
+  while(naIterateStack(&iter)){
+    const FIAccount* childAccount = naGetStackCurpConst(&iter);
+    FIAmount debitRate = fiGetExchangeRate(fiGetAccountDebitFungible(childAccount), fiGetAccountDebitFungible(account));
+    FIAmount childDebitTotal = fiGetAccountTotalDebitSum(childAccount);
+    FIAmount childDebitRatedTotal = fiMulAmount(childDebitTotal, debitRate);
+    account->totalDebitSum = fiAddAmount(account->totalDebitSum, childDebitRatedTotal);
+    FIAmount creditRate = fiGetExchangeRate(fiGetAccountCreditFungible(childAccount), fiGetAccountCreditFungible(account));
+    FIAmount childCreditTotal = fiGetAccountTotalCreditSum(childAccount);
+    FIAmount childCreditRatedTotal = fiMulAmount(childCreditTotal, creditRate);
+    account->totalCreditSum = fiAddAmount(account->totalCreditSum, childCreditRatedTotal);
+  }
+  naClearStackIterator(&iter);
+}
 FIAmount fiGetAccountTotalDebitSum(const FIAccount* account){
+  if(account->dirty){
+    FIAccount* mutableAccount = (FIAccount*)account;
+    fiComputeTotalSums(mutableAccount);
+    mutableAccount->dirty = NA_FALSE;
+  }
   return account->totalDebitSum;
 }
 FIAmount fiGetAccountTotalCreditSum(const FIAccount* account){
+  if(account->dirty){
+    FIAccount* mutableAccount = (FIAccount*)account;
+    fiComputeTotalSums(mutableAccount);
+    mutableAccount->dirty = NA_FALSE;
+  }
   return account->totalCreditSum;
 }
 FIAccount* getAccountParent(const FIAccount* account){
@@ -157,68 +186,45 @@ FIAccount* getAccountParent(const FIAccount* account){
 
 
 
-void fiAddAccountDebitSum(FIAccount* account, FIAmount amount, NABool local){
+void fiAddAccountDebitSum(FIAccount* account, FIAmount amount){
   #ifndef NDEBUG
     if(fiSmallerAmount(amount, fiAmountZero()) && fiSmallerAmount(account->totalDebitSum, fiNegAmount(amount)))
       fiError("amount is negative");
   #endif
   
-  if(local){account->localDebitSum = fiAddAmount(account->localDebitSum, amount);}
-  account->totalDebitSum = fiAddAmount(account->totalDebitSum, amount);
+  account->localDebitSum = fiAddAmount(account->localDebitSum, amount);
   
-  if(account->parent){
-    FIAmount rate = fiGetExchangeRate(fiGetAccountAnyFungible(account), fiGetAccountAnyFungible(account->parent));
-    fiAddAccountDebitSum(account->parent, fiMulAmount(amount, rate), NA_FALSE);
+  while(account->parent && !account->parent->dirty){
+    account = account->parent;
+    account->dirty = NA_TRUE;
   }
 }
 
 
 
-void fiAddAccountCreditSum(FIAccount* account, FIAmount amount, NABool local){
-  if(fiSmallerAmount(amount, fiAmountZero()) && fiSmallerAmount(account->totalCreditSum, fiNegAmount(amount))){
-    printf("amount is negative");
-  }
+void fiAddAccountCreditSum(FIAccount* account, FIAmount amount){
+  #ifndef NDEBUG
+    if(fiSmallerAmount(amount, fiAmountZero()) && fiSmallerAmount(account->totalCreditSum, fiNegAmount(amount))){
+      printf("amount is negative");
+    }
+  #endif
 
-  if(local){account->localCreditSum = fiAddAmount(account->localCreditSum, amount);}
-  account->totalCreditSum = fiAddAmount(account->totalCreditSum, amount);
+  account->localCreditSum = fiAddAmount(account->localCreditSum, amount);
 
-  if(account->parent){
-    FIAmount rate = fiGetExchangeRate(fiGetAccountAnyFungible(account), fiGetAccountAnyFungible(account->parent));
-    fiAddAccountCreditSum(account->parent, fiMulAmount(amount, rate), NA_FALSE);
+  while(account->parent && !account->parent->dirty){
+    account = account->parent;
+    account->dirty = NA_TRUE;
   }
 }
 
 
 
 NA_HDEF NAString* naNewStringWithAmount(FIAmount amount, const FIFungible* fungible){
-  int i;
-
   NAi256 units = naDivi256(amount.decimals, fiAmountOne().decimals);
   NAi256 decimals = naModi256(amount.decimals, fiAmountOne().decimals);
 
-  // todo: This is rubbisly implemented. Do it gooder.
-  NAi256 decimalTen = naMakei256WithDouble(1.);
-  for(i = 0; i < 36 - fiGetFungibleDecimals(fungible); i++){
-    decimalTen = naMuli256(decimalTen, naMakei256WithDouble(10.));
-  }
+  decimals = fiRoundFungiblei256(fungible, decimals, NA_FALSE);
 
-  decimals = naDivi256(decimals, decimalTen);
-
-
-  //int256 value = amount.decimals;
-  //int256 decfactor = naMakeInt256WithDouble(1.);
-  //for(i = 18; i > fiGetFungibleDecimals(fungible); i--){
-  //  decfactor = naMulInt256(decfactor, naMakeInt256WithDouble(10.));
-  //}
-  //value = naDivInt256(value, decfactor);
-  //int256 decimals = naModInt256(value, decimalTen);
-  //int256 units = naDivInt256(value, decimalTen);
-  //double doublevalue = naCastInt256ToDouble(value);
-  //return naNewStringWithFormat("%.02f", doublevalue);
-
-  //int64 decfacor = naMakeInt64WithDouble(pow(10., (double)digits));
-  //int64 units = (int64)(amount * decfacor) / decfacor;
-  //int64 decimals = (int64)(amount * decfacor) % decfacor;
   if(fiGetFungibleDecimals(fungible) == 0){
     return naNewStringWithFormat("%lld", naCasti256Toi32(units));
   }else{
@@ -334,22 +340,23 @@ void fiPrintAccount(const FIAccount* account, NABool recursive){
       }
     }
     
-    //if(rate != 1.)
-    //{
+    if(fiGetAccountDebitFungible(account) != fiGetAccountDebitFungible(childAccount)
+      && fiGetAccountCreditFungible(account) != fiGetAccountCreditFungible(childAccount))
+    {
       printf("%s\t%s\t%s\t%s\tCUR\t%s\t%s\n",
-        "Unter-Konto",
+        "Unter-Konto Fremdwaehrung",
         naGetStringUTF8Pointer(fiGetAccountName(childAccount)),
         naGetStringUTF8Pointer(debitstr),
         naGetStringUTF8Pointer(creditstr),
         naGetStringUTF8Pointer(fungibledebitstr),
         naGetStringUTF8Pointer(fungiblecreditstr));
-    //}else{
-      //printf("%s\t%s\t%s\t%s\n",
-      //  "Unter-Konto",
-      //  naGetStringUTF8Pointer(fiGetAccountName(childAccount)),
-      //  naGetStringUTF8Pointer(debitstr),
-      //  naGetStringUTF8Pointer(creditstr));
-    //}
+    }else{
+      printf("%s\t%s\t%s\t%s\n",
+        "Unter-Konto",
+        naGetStringUTF8Pointer(fiGetAccountName(childAccount)),
+        naGetStringUTF8Pointer(debitstr),
+        naGetStringUTF8Pointer(creditstr));
+    }
     
     naDelete(debitstr);
     naDelete(creditstr);

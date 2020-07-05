@@ -14,8 +14,6 @@ typedef struct FIBooking    FIBooking;
 typedef struct FIAccount    FIAccount;
 typedef struct FIExAccount  FIExAccount;
 
-typedef struct FIAmount   FIAmount;
-
 typedef enum{
   FIRMY_ACCOUNT_TYPE_MAIN_BOOK = 0,
   FIRMY_ACCOUNT_TYPE_BALANCE,
@@ -40,7 +38,13 @@ typedef enum{
 #include FIRMY_NALIB_PATH(NADateTime.h)
 
 
-
+typedef enum{
+  FI_AMOUNT_BUYS_RATIO,  // Debit: value1             Credit: value1 / value2
+  FI_RATIO_BUYS_AMOUNT,  // Debit: value2 * value1    Credit: value2
+  FI_AMOUNT_SELLS_RATIO, // Debit: value1             Credit: value1 * value2
+  FI_RATIO_SELLS_AMOUNT, // Debit: value2 / value1    Credit: value2
+  FI_AMOUNT_BUYS_AMOUNT, // Debit: value1             Credit: value2
+} FIExchangeType;
 
 // Starts and stops a business unit (Company, Enterprise, Household)
 void fiStart(const NAUTF8Char* name);
@@ -50,7 +54,10 @@ void fiStop(void);
 const FIFungible* fiRegisterFungible(
   const NAUTF8Char* name,
   const NAUTF8Char* identifier,
-  NAInt digits);
+  size_t digits);
+
+// Rounds the given amount to the number of decimals defined by the fungible.
+double fiRoundFungibleAmount(const FIFungible* fungible, double amount);
 
 // Searches for an already registered fungible and returns it.
 const FIFungible* fiGetFungible(const NAUTF8Char* identifier);
@@ -93,6 +100,7 @@ void fiBook(
 
 // Adds an exchange booking to the current document.
 void fiExch(
+  FIExchangeType exchangeType,
   double amount,
   double bookrate,
   FIAccount* accountdebit,

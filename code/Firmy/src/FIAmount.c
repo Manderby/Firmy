@@ -24,7 +24,7 @@ NAi256 fiAmountDoubleRemainingMultiplicand(){
 FIAmount fiAmount(double value){
   // todo computation of negative numbers
   NAi64 integer = naGetDoubleInteger(value);
-  NAi64 fraction = naGetDoubleFraction(value);
+  NAi64 fraction = naGetDoubleFractionSlow(value);
 
   FIAmount amount;
   amount.decimals = naMuli256(naMakei256WithLo(naMakei128WithLo(integer)), fiAmountOne().decimals);

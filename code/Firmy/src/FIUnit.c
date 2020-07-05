@@ -84,7 +84,7 @@ FIPeriod* fiRegisterPeriod(
 const FIFungible* fiRegisterFungible(
   const NAUTF8Char* name,
   const NAUTF8Char* identifier,
-  NAInt digits)
+  size_t digits)
 {
   #ifndef NDEBUG
     if(fiGetFungible(identifier))
