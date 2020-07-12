@@ -39,11 +39,12 @@ typedef enum{
 
 
 typedef enum{
-  FI_AMOUNT_BUYS_RATIO,  // Debit: value1             Credit: value1 / value2
-  FI_RATIO_BUYS_AMOUNT,  // Debit: value2 * value1    Credit: value2
-  FI_AMOUNT_SELLS_RATIO, // Debit: value1             Credit: value1 * value2
-  FI_RATIO_SELLS_AMOUNT, // Debit: value2 / value1    Credit: value2
-  FI_AMOUNT_BUYS_AMOUNT, // Debit: value1             Credit: value2
+  FI_AMOUNT_BUYS_RATIO,   // Debit: value1             Credit: value1 / value2
+  FI_RATIO_BUYS_AMOUNT,   // Debit: value2 * value1    Credit: value2
+  FI_AMOUNT_SELLS_RATIO,  // Debit: value1             Credit: value1 * value2
+  FI_RATIO_SELLS_AMOUNT,  // Debit: value2 / value1    Credit: value2
+  FI_AMOUNT_BUYS_AMOUNT,  // Debit: value1             Credit: value2
+  FI_AMOUNT_SELLS_AMOUNT, // Debit: value2             Credit: value1
 } FIExchangeType;
 
 // Starts and stops a business unit (Company, Enterprise, Household)

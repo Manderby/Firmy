@@ -287,6 +287,10 @@ void fiExch(FIExchangeType exchangeType, double value1, double value2, FIAccount
     amount1 = fiAmount(value1);
     amount2 = fiAmount(value2);
     break;
+  case FI_AMOUNT_SELLS_AMOUNT:
+    amount1 = fiAmount(value2);
+    amount2 = fiAmount(value1);
+    break;
   }
   fiExchAmount(amount1, amount2, accountdebit, accountcredit, text);
 }

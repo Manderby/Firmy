@@ -59,7 +59,7 @@ FIPeriod* createYear1(FIPeriod* prevperiod){
 
   fiDocument(naMakeDateTime(2020, 2, 5, 21, 46, 25), "Saving money in euros");
   //fiBook(1234., bankkonto1021, bankkonto1020, "Finanzspritze");
-  fiExch(123.456, 9.87, bankkonto1021, bankkonto1020, "Finanzspritze");
+  fiExch(FI_RATIO_SELLS_AMOUNT, 1.1, 123.456, bankkonto1021, bankkonto1020, "Finanzspritze");
 
   // Lohn
   fiDocument(naMakeDateTime(2020, 2, 6, 0, 0, 0), "Lohnauszug Manderby Februar");
