@@ -32,8 +32,8 @@ FIPeriod* fiNewPeriod(
   period->name = naNewStringWithFormat(name);
   period->start = start;
   period->mainFungible = mainFungible;
-  naInitStack(&(period->accounts), sizeof(FIAccount*), 2);
-  naInitStack(&(period->bookings), sizeof(FIBooking*), 2);
+  naInitStack(&(period->accounts), sizeof(FIAccount*), 0, 0);
+  naInitStack(&(period->bookings), sizeof(FIBooking*), 0, 0);
   return period;
 }
 
@@ -53,44 +53,44 @@ void fiRegisterMainAccounts(void){
   NAString* idstr;
   NAString* namestr;
   
-  idstr = naNewStringWithUTF8CStringLiteral(FIRMY_MAIN_BOOK_IDENTIFIER);
-  namestr = naNewStringWithUTF8CStringLiteral("Hauptbuch");
+  idstr = naNewStringWithFormat(FIRMY_MAIN_BOOK_IDENTIFIER);
+  namestr = naNewStringWithFormat("Hauptbuch");
   fiAddPeriodMainAccount(idstr, namestr, FIRMY_MAIN_BOOK_IDENTIFIER, FIRMY_ACCOUNT_TYPE_MAIN_BOOK);
   naDelete(idstr);
   naDelete(namestr);
 
-  idstr = naNewStringWithUTF8CStringLiteral(FIRMY_BALANCE_IDENTIFIER);
-  namestr = naNewStringWithUTF8CStringLiteral("Bilanz");
+  idstr = naNewStringWithFormat(FIRMY_BALANCE_IDENTIFIER);
+  namestr = naNewStringWithFormat("Bilanz");
   fiAddPeriodMainAccount(idstr, namestr, FIRMY_MAIN_BOOK_IDENTIFIER, FIRMY_ACCOUNT_TYPE_BALANCE);
   naDelete(idstr);
   naDelete(namestr);
 
-  idstr = naNewStringWithUTF8CStringLiteral(FIRMY_PROFITLOSS_IDENTIFIER);
-  namestr = naNewStringWithUTF8CStringLiteral("Erfolgsrechnung");
+  idstr = naNewStringWithFormat(FIRMY_PROFITLOSS_IDENTIFIER);
+  namestr = naNewStringWithFormat("Erfolgsrechnung");
   fiAddPeriodMainAccount(idstr, namestr, FIRMY_MAIN_BOOK_IDENTIFIER, FIRMY_ACCOUNT_TYPE_PROFITLOSS);
   naDelete(idstr);
   naDelete(namestr);
 
-  idstr = naNewStringWithUTF8CStringLiteral(FIRMY_ASSET_IDENTIFIER);
-  namestr = naNewStringWithUTF8CStringLiteral("Aktiven");
+  idstr = naNewStringWithFormat(FIRMY_ASSET_IDENTIFIER);
+  namestr = naNewStringWithFormat("Aktiven");
   fiAddPeriodMainAccount(idstr, namestr, FIRMY_BALANCE_IDENTIFIER, FIRMY_ACCOUNT_TYPE_ASSET);
   naDelete(idstr);
   naDelete(namestr);
 
-  idstr = naNewStringWithUTF8CStringLiteral(FIRMY_LIABILITY_IDENTIFIER);
-  namestr = naNewStringWithUTF8CStringLiteral("Passiven");
+  idstr = naNewStringWithFormat(FIRMY_LIABILITY_IDENTIFIER);
+  namestr = naNewStringWithFormat("Passiven");
   fiAddPeriodMainAccount(idstr, namestr, FIRMY_BALANCE_IDENTIFIER, FIRMY_ACCOUNT_TYPE_LIABILITY);
   naDelete(idstr);
   naDelete(namestr);
 
-  idstr = naNewStringWithUTF8CStringLiteral(FIRMY_EXPENSE_IDENTIFIER);
-  namestr = naNewStringWithUTF8CStringLiteral("Aufwand");
+  idstr = naNewStringWithFormat(FIRMY_EXPENSE_IDENTIFIER);
+  namestr = naNewStringWithFormat("Aufwand");
   fiAddPeriodMainAccount(idstr, namestr, FIRMY_PROFITLOSS_IDENTIFIER, FIRMY_ACCOUNT_TYPE_EXPENSE);
   naDelete(idstr);
   naDelete(namestr);
 
-  idstr = naNewStringWithUTF8CStringLiteral(FIRMY_INCOME_IDENTIFIER);
-  namestr = naNewStringWithUTF8CStringLiteral("Ertrag");
+  idstr = naNewStringWithFormat(FIRMY_INCOME_IDENTIFIER);
+  namestr = naNewStringWithFormat("Ertrag");
   fiAddPeriodMainAccount(idstr, namestr, FIRMY_PROFITLOSS_IDENTIFIER, FIRMY_ACCOUNT_TYPE_INCOME);
   naDelete(idstr);
   naDelete(namestr);
@@ -163,8 +163,8 @@ void fiCopyPeriodAccountsFromPrevPeriod(const FIPeriod* prevperiod){
       }else{
         NAString* idstr;
         NAString* namestr;
-        idstr = naNewStringWithUTF8CStringLiteral(FIRMY_MAIN_BOOK_IDENTIFIER);
-        namestr = naNewStringWithUTF8CStringLiteral("Hauptbuch");
+        idstr = naNewStringWithFormat(FIRMY_MAIN_BOOK_IDENTIFIER);
+        namestr = naNewStringWithFormat("Hauptbuch");
         fiAddPeriodMainAccount(idstr, namestr, FIRMY_MAIN_BOOK_IDENTIFIER, FIRMY_ACCOUNT_TYPE_MAIN_BOOK);
         naDelete(idstr);
         naDelete(namestr);

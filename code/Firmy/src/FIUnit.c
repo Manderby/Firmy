@@ -28,9 +28,9 @@ NA_RUNTIME_TYPE(FIUnit, fiDestructUnit, NA_FALSE);
 
 void fiStart(const NAUTF8Char* name){
   FIUnit* unit = naNew(FIUnit);
-  unit->name = naNewStringWithUTF8CStringLiteral(name);
-  naInitStack(&(unit->periods), sizeof(FIPeriod*), 2);
-  naInitStack(&(unit->fungibles), sizeof(FIFungible*), 2);
+  unit->name = naNewStringWithFormat(name);
+  naInitStack(&(unit->periods), sizeof(FIPeriod*), 0, 0);
+  naInitStack(&(unit->fungibles), sizeof(FIFungible*), 0, 0);
   unit->curPeriod = NA_NULL;
   unit->curDoc = NA_NULL;
   fi_unit = unit;

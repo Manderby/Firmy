@@ -52,7 +52,7 @@ FIAccount* fiNewAccount(
     account->name = NA_NULL;
   }
   account->parent = newParent;
-  naInitStack(&(account->childs), naSizeof(FIAccount*), 2);
+  naInitStack(&(account->childs), naSizeof(FIAccount*), 0, 0);
   account->totalDebitSum  = fiAmountZero();
   account->totalCreditSum = fiAmountZero();
   account->localDebitSum  = fiAmountZero();
@@ -74,10 +74,10 @@ FIAccount* fiNewExchangeAccount(
   account->debitFungible = debitFungible;
   account->creditFungible = creditFungible;
   account->exchangeRate = fiAmountOne();
-  account->identifier = naNewStringWithUTF8CStringLiteral("exchangeAccount");
-  account->name = naNewStringWithUTF8CStringLiteral("Exchange Account");
+  account->identifier = naNewStringWithFormat("exchangeAccount");
+  account->name = naNewStringWithFormat("Exchange Account");
   account->parent = NA_NULL;
-  naInitStack(&(account->childs), naSizeof(FIAccount*), 2);
+  naInitStack(&(account->childs), naSizeof(FIAccount*), 0, 0);
   account->totalDebitSum  = fiAmountZero();
   account->totalCreditSum = fiAmountZero();
   account->localDebitSum  = fiAmountZero();
