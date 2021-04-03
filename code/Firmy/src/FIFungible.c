@@ -26,10 +26,10 @@ FIFungible* fiNewFungible(
       fiError("Can not be more accurate than 36 decimal digits after the point");
   #endif
   FIFungible* fungible = naNew(FIFungible);
-  fungible->name = naNewStringWithUTF8CStringLiteral(name);
-  fungible->identifier = naNewStringWithUTF8CStringLiteral(identifier);
+  fungible->name = naNewStringWithFormat(name);
+  fungible->identifier = naNewStringWithFormat(identifier);
   fungible->decimals = decimals;
-  naInitStack(&(fungible->exchangeAccounts), naSizeof(FIAccount*), 2);
+  naInitStack(&(fungible->exchangeAccounts), sizeof(FIAccount*), 0, 0);
 
   fungible->doubleRounder = 1.;
   for(size_t i = 0; i < decimals; i++){
