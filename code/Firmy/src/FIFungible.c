@@ -29,7 +29,7 @@ FIFungible* fiNewFungible(
   fungible->name = naNewStringWithFormat(name);
   fungible->identifier = naNewStringWithFormat(identifier);
   fungible->decimals = decimals;
-  naInitStack(&(fungible->exchangeAccounts), naSizeof(FIAccount*), 0, 0);
+  naInitStack(&(fungible->exchangeAccounts), sizeof(FIAccount*), 0, 0);
 
   fungible->doubleRounder = 1.;
   for(size_t i = 0; i < decimals; i++){
