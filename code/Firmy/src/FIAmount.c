@@ -34,6 +34,12 @@ FIAmount fiAmount(double value){
   return amount;
 }
 
+FIAmount fiAmountWithDecimals(NAi256 decimals){
+  FIAmount amount;
+  amount.decimals = decimals;
+  return amount;
+}
+
 NABool fiIsAmountZero(FIAmount amount){
   return naEquali256(amount.decimals, NA_ZERO_i256);
 }

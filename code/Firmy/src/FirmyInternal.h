@@ -73,6 +73,7 @@ const FIAccount*  fiGetBookingCreditAccount (const FIBooking* booking);
 FIAmount fiAmountZero(void);
 FIAmount fiAmountOne(void);
 FIAmount fiAmount(double value);
+FIAmount fiAmountWithDecimals(NAi256 decimals);
 NABool   fiIsAmountZero(FIAmount amount);
 NABool   fiSmallerAmount(FIAmount amount, FIAmount cmpAmount);
 NABool   fiGreaterAmount(FIAmount amount, FIAmount cmpAmount);

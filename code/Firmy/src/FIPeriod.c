@@ -244,6 +244,21 @@ void fiBook(double amount, FIAccount* accountdebit, FIAccount* accountcredit, co
 
 
 
+void fiExchange(
+  double amountSrc,
+  FIAccount* accountSrc,
+  FIAccount* accountSrcCurrency,
+  FIAccount* accountDstCurrency,
+  FIAccount* accountDst,
+  double amountDst,
+  const NAUTF8Char* text)
+{
+  fiBook(amountSrc, accountSrcCurrency, accountSrc, text);
+  fiBook(amountDst, accountDst, accountDstCurrency, text);
+}
+
+
+
 void fiBookAmount(FIAmount amount, FIAccount* accountdebit, FIAccount* accountcredit, const NAUTF8Char* text){
   #ifndef NDEBUG
     if(accountdebit && accountcredit && fiGetAccountDebitFungible(accountdebit) != fiGetAccountCreditFungible(accountcredit))

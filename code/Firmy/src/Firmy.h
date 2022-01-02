@@ -99,6 +99,15 @@ void fiBook(
   FIAccount* accountcredit,
   const NAUTF8Char* text);
 
+void fiExchange(
+  double amountSrc,
+  FIAccount* accountSrc,
+  FIAccount* accountSrcCurrency,
+  FIAccount* accountDstCurrency,
+  FIAccount* accountDst,
+  double amountDst,
+  const NAUTF8Char* text);
+
 // Adds an exchange booking to the current document.
 void fiExch(
   FIExchangeType exchangeType,
