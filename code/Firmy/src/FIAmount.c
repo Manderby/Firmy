@@ -126,9 +126,6 @@ NAi256 naMulInt256WithFixedDecimals(NAi256 v1, NAi256 v2, NAi256 fractionBase, N
 
   NAi256 lolo = naMuli256(v1Lo, v2Lo);
   if(roundLastDecimal){
-    #if NA_SIGNED_INTEGER_ENCODING != NA_SIGNED_INTEGER_ENCODING_TWOS_COMPLEMENT
-      naError("Using shift operation for division by two while not using 2s complement");
-    #endif
     NAi256 rounder = naShri256(fractionBase, 1);
     lolo = naAddi256(lolo, rounder);
   }
