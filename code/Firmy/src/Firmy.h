@@ -35,7 +35,7 @@ typedef enum{
 
 
 
-#include FIRMY_NALIB_PATH(NADateTime.h)
+#include FIRMY_NALIB_PATH(NAUtility/NADateTime.h)
 
 
 typedef enum{

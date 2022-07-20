@@ -5,7 +5,7 @@
 
 #define fiError naError
 
-#include FIRMY_NALIB_PATH(NAStack.h)
+#include FIRMY_NALIB_PATH(NAStruct/NAStack.h)
 
 typedef struct FIAmount FIAmount; 
 struct FIAmount{

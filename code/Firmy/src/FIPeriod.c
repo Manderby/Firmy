@@ -1,8 +1,8 @@
 
 #include "Firmy.h"
 #include "FirmyInternal.h"
-#include FIRMY_NALIB_PATH(NAStack.h)
-#include FIRMY_NALIB_PATH(NAString.h)
+#include FIRMY_NALIB_PATH(NAStruct/NAStack.h)
+#include FIRMY_NALIB_PATH(NAUtility/NAString.h)
 
 
 struct FIPeriod{

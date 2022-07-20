@@ -13,10 +13,10 @@ FIAmount fiAmountOne(){
   amount.decimals = naMakei256(NA_ZERO_i128, naMakeu128(naMakeu64(0x00c097ce, 0x7bc90715), naMakeu64(0xb34b9f10, NA_ZERO_u32)));
   return amount;
 }
-double fiAmountDoubleDecimalMultiplicand(){
-  return naExp10d(15);  // 15 == DBL_DIG
+double fiAmountDoubleDecimalMultiplicand(void){
+  return naExp10(15);  // 15 == DBL_DIG
 }
-NAi256 fiAmountDoubleRemainingMultiplicand(){
+NAi256 fiAmountDoubleRemainingMultiplicand(void){
   // A 1 with (36 - 15) = 21 zeros.   15 == DBL_DIG
   return naMakei256(NA_ZERO_i128, naMakeu128(naMakeu64(NA_ZERO_u32, 0x00000036), naMakeu64(0x35c9adc5, 0xdea00000)));
 }

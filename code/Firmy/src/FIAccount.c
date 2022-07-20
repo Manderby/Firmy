@@ -1,8 +1,8 @@
 
 #include "Firmy.h"
 #include "FirmyInternal.h"
-#include FIRMY_NALIB_PATH(NAStack.h)
-#include FIRMY_NALIB_PATH(NAHeap.h)
+#include FIRMY_NALIB_PATH(NAStruct/NAStack.h)
+#include FIRMY_NALIB_PATH(NAStruct/NAHeap.h)
 
 
 struct FIAccount{
